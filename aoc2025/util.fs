@@ -1,4 +1,4 @@
-module aoc2024.util
+module aoc2025.util
 
 open System
 open System.Collections.Generic
@@ -78,7 +78,6 @@ module List =
             | h :: t -> cp (h |> List.collect (fun x -> List.map (fun y -> x :: y) acc)) t
 
         cp lists
-
 
     let cartesianProduct lists =
         let rec cp acc =
@@ -512,4 +511,4 @@ let inline squad_ref_snd (quad: Quad<_, _, _, _> byref) = quad.Item2
 let inline squad_ref_trd (quad: Quad<_, _, _, _> byref) = quad.Item3
 let inline squad_ref_fth (quad: Quad<_, _, _, _> byref) = quad.Item4
 
-let aocIO = aocIO 2024
+let aocIO = aocIO 2025

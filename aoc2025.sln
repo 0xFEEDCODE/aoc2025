@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "aoc2024", "aoc2024\aoc2024.fsproj", "{BC3B4C8B-0935-4A3C-B243-D9F8DE10E626}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "aoc2025", "aoc2025\aoc2025.fsproj", "{BC3B4C8B-0935-4A3C-B243-D9F8DE10E626}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

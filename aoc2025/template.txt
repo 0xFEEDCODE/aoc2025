@@ -1,6 +1,6 @@
-﻿module aoc2024.dayX
+﻿module aoc2025.dayX
 
-open aoc2024.util
+open aoc2025.util
 
 let solve () =
     let io = aocIO
