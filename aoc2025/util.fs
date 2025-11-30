@@ -12,14 +12,7 @@ open System.Net.Http
 
 open System.Threading
 
-
 let smapi x = x |> Seq.mapi (fun i x -> (i, x))
-
-let smapi2 x =
-    (smapi x)
-    |> Seq.map (fun (fst, snd) -> snd |> Seq.mapi (fun i x -> ((fst, i), x)))
-    |> Seq.collect id
-
 let swapTuple x = (snd x, fst x)
 
 let lw (a, b) = (lazy a, lazy b)
@@ -171,22 +164,38 @@ let perm (data: 'a seq) =
     perm (data |> Seq.length) (data |> Seq.toArray)
     acc |> List.toSeq
 
+type Boundary =
+    { maxX: int
+      minX: int
+      maxY: int
+      minY: int }
+
 type P2D =
-    struct
-        val x: int
-        val y: int
+    { x: int
+      y: int }
 
-        new(x: int, y: int) = { x = x; y = y }
-        new(xy: Tuple<int, int>) = { x = fst xy; y = snd xy }
+    member this.GetManhattanDistance(other: P2D) =
+        abs (this.x - other.x) + abs (this.y - other.y)
 
-        member this.GetManhattanDistance(other: P2D) =
-            abs (this.x - other.x) + abs (this.y - other.y)
+    static member (+)(a: P2D, b: P2D) = { x = a.x + b.x; y = a.y + b.y }
+    static member (-)(a: P2D, b: P2D) = { x = a.x - b.x; y = a.y - b.y }
 
-        static member (+)(a: P2D, b: P2D) = P2D(a.x + b.x, a.y + b.y)
-        static member (-)(a: P2D, b: P2D) = P2D(a.x - b.x, a.y - b.y)
+    override this.ToString() = $"[{this.x};{this.y}]"
 
-        override this.ToString() = $"[{this.x};{this.y}]"
-    end
+[<System.Runtime.CompilerServices.ExtensionAttribute>]
+type TupleExtensions =
+    // Tuple<int, int>
+    [<System.Runtime.CompilerServices.ExtensionAttribute>]
+    static member AsP2D(t: System.Tuple<int, int>) = { x = fst t; y = snd t }
+
+    [<System.Runtime.CompilerServices.ExtensionAttribute>]
+    static member AsBoundary(t: System.Tuple<int, int, int, int>) =
+        let f, s, t, fo = t
+
+        { minX = f
+          maxX = s
+          minY = t
+          maxY = fo }
 
 type P3D =
     struct
@@ -239,10 +248,10 @@ type Line =
 
             if (ax1 = ax2 && bx1 = bx2 && ax1 = bx1 && this.IntersectsAtAxis ay1 ay2 by1 by2) then
                 let isectStart, isectEnd = getIntersect ay1 ay2 by1 by2
-                Line(P2D(ax1, isectStart), P2D(ax2, isectEnd)) |> Some
+                Line({ x = ax1; y = isectStart }, { x = ax2; y = isectEnd }) |> Some
             elif (ay1 = ay2 && by1 = by2 && ay1 = by1 && this.IntersectsAtAxis ax1 ax2 bx1 bx2) then
                 let isectStart, isectEnd = getIntersect ax1 ax2 bx1 bx2
-                Line(P2D(isectStart, ay1), P2D(isectEnd, ay2)) |> Some
+                Line({ x = isectStart; y = ay1 }, { x = isectEnd; y = ay2 }) |> Some
             else
                 None
 
@@ -264,6 +273,14 @@ type Line =
             else
                 None
     end
+
+
+
+let smapi2 x =
+    (smapi x)
+    |> Seq.map (fun (fst, snd) -> snd |> Seq.mapi (fun i x -> ((fst, i).AsP2D(), x)))
+    |> Seq.collect id
+
 
 type aocIO(year) =
     let year = year
@@ -324,6 +341,8 @@ type aocIO(year) =
             if (not response.IsSuccessStatusCode) then
                 failwith $"Could not get input, http error - {response.StatusCode}"
 
+            printfn "Success getting input"
+
             let content = response.Content.ReadAsStringAsync(cts.Token)
             content |> Async.AwaitTask |> ignore
             File.WriteAllText(pathToInputFile, content.Result)
@@ -370,8 +389,14 @@ type aocIO(year) =
 
 
 module Grid =
+    let mapIndexes grid = smapi2 grid
+
     let getNRowsAndNCols grid =
         (grid |> Seq.length, grid |> Seq.head |> Seq.length)
+
+    let getBoundary grid =
+        let maxY, maxX = grid |> getNRowsAndNCols
+        (0, maxX - 1, 0, maxY - 1).AsBoundary()
 
     let iter action (source: array<'a> array) =
         let nRows, nCols = getNRowsAndNCols source
@@ -414,18 +439,19 @@ module Grid =
 
     let getAdjacentNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
-        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
         |> Seq.toArray
 
     let getDiagonalNeighbours (point: P2D) =
         [ (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
         |> Seq.toArray
 
     let getAllNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1); (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
         |> Seq.toArray
+
 
 
 module Math =
@@ -443,17 +469,17 @@ module Math =
 module P2D =
     let getAdjacentNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
-        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
         |> Seq.toArray
 
     let getDiagonalNeighbours (point: P2D) =
         [ (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
         |> Seq.toArray
 
     let getAllNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1); (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
         |> Seq.toArray
 
 let aocIO = aocIO 2025
@@ -466,9 +492,14 @@ type DIR =
 
 [<System.Runtime.CompilerServices.ExtensionAttribute>]
 type Extensions =
-    // Tuple<int, int>
-    [<System.Runtime.CompilerServices.ExtensionAttribute>]
-    static member ToP2D(t: System.Tuple<int, int>) = P2D(fst t, snd t)
     // P2D
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
-    static member Rev(p: P2D) = P2D(p.y, p.x)
+    static member Rev(p: P2D) = (p.y, p.x).AsP2D()
+    // Grid
+    [<System.Runtime.CompilerServices.ExtensionAttribute>]
+    static member Print(grid: 'a array array) =
+        for i in 0 .. grid.Length - 1 do
+            for j in 0 .. (grid |> Seq.head |> Seq.length) - 1 do
+                printf $"{grid[i][j]}"
+
+            printfn ""

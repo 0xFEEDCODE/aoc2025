@@ -1,4 +1,4 @@
-module aoc2025.day01
+﻿module aoc2025.day01
 
 open aoc2025.util
 
