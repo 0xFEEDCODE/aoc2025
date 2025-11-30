@@ -8,8 +8,23 @@
 
     <ItemGroup>
         <Compile Include="util.fs"/>
+        <Content Include="practice.txt"/>
         <Content Include="template.txt"/>
         <Content Include="junk.txt"/>
+        <Content Include="day01.txt"/>
+        <Content Include="day02.txt"/>
+        <Content Include="day03.txt"/>
+        <Content Include="day04.txt"/>
+        <Content Include="day05.txt"/>
+        <Content Include="day06.txt"/>
+        <Content Include="day07.txt"/>
+        <Content Include="day08.txt"/>
+        <Content Include="day09.txt"/>
+        <Content Include="day10.txt"/>
+        <Content Include="day11.txt"/>
+        <Content Include="day12.txt"/>
+        <Compile Include="day01.fs"/>
+        <Compile Include="Program.fs"/>
     </ItemGroup>
 
     <ItemGroup>

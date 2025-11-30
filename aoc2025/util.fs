@@ -12,7 +12,15 @@ open System.Net.Http
 
 open System.Threading
 
+
 let smapi x = x |> Seq.mapi (fun i x -> (i, x))
+
+let smapi2 x =
+    (smapi x)
+    |> Seq.map (fun (fst, snd) -> snd |> Seq.mapi (fun i x -> ((fst, i), x)))
+    |> Seq.collect id
+
+let swapTuple x = (snd x, fst x)
 
 let lw (a, b) = (lazy a, lazy b)
 let (?) is_true (a, b) = if is_true then a else b
@@ -163,42 +171,42 @@ let perm (data: 'a seq) =
     perm (data |> Seq.length) (data |> Seq.toArray)
     acc |> List.toSeq
 
-type Point2D =
+type P2D =
     struct
         val x: int
         val y: int
 
         new(x: int, y: int) = { x = x; y = y }
+        new(xy: Tuple<int, int>) = { x = fst xy; y = snd xy }
 
-        member this.GetManhattanDistance(other: Point2D) =
+        member this.GetManhattanDistance(other: P2D) =
             abs (this.x - other.x) + abs (this.y - other.y)
 
+        static member (+)(a: P2D, b: P2D) = P2D(a.x + b.x, a.y + b.y)
+        static member (-)(a: P2D, b: P2D) = P2D(a.x - b.x, a.y - b.y)
+
         override this.ToString() = $"[{this.x};{this.y}]"
-        static member (+)(a: Point2D, b: Point2D) = Point2D(a.x + b.x, a.y + b.y)
-        static member (-)(a: Point2D, b: Point2D) = Point2D(a.x - b.x, a.y - b.y)
     end
 
-type Point3D =
+type P3D =
     struct
         val x: int
         val y: int
         val z: int
         new(x: int, y: int, z: int) = { x = x; y = y; z = z }
+
+        static member (+)(a: P3D, b: P3D) = P3D(a.x + b.x, a.y + b.y, a.z + b.z)
+        static member (-)(a: P3D, b: P3D) = P3D(a.x - b.x, a.y - b.y, a.z - b.z)
+
         override this.ToString() = $"[{this.x};{this.y};{this.z}]"
-
-        static member (+)(a: Point3D, b: Point3D) =
-            Point3D(a.x + b.x, a.y + b.y, a.z + b.z)
-
-        static member (-)(a: Point3D, b: Point3D) =
-            Point3D(a.x - b.x, a.y - b.y, a.z - b.z)
     end
 
 type Line =
     struct
-        val s: Point2D
-        val e: Point2D
+        val s: P2D
+        val e: P2D
 
-        new(s: Point2D, e: Point2D) = { s = s; e = e }
+        new(s: P2D, e: P2D) = { s = s; e = e }
         override this.ToString() = $"Start: {this.s}; End: {this.e}"
 
         member private this.IntersectsAtAxis startA endA startB endB =
@@ -231,10 +239,10 @@ type Line =
 
             if (ax1 = ax2 && bx1 = bx2 && ax1 = bx1 && this.IntersectsAtAxis ay1 ay2 by1 by2) then
                 let isectStart, isectEnd = getIntersect ay1 ay2 by1 by2
-                Line(Point2D(ax1, isectStart), Point2D(ax2, isectEnd)) |> Some
+                Line(P2D(ax1, isectStart), P2D(ax2, isectEnd)) |> Some
             elif (ay1 = ay2 && by1 = by2 && ay1 = by1 && this.IntersectsAtAxis ax1 ax2 bx1 bx2) then
                 let isectStart, isectEnd = getIntersect ax1 ax2 bx1 bx2
-                Line(Point2D(isectStart, ay1), Point2D(isectEnd, ay2)) |> Some
+                Line(P2D(isectStart, ay1), P2D(isectEnd, ay2)) |> Some
             else
                 None
 
@@ -404,19 +412,19 @@ module Grid =
         |> Seq.map (fun _ -> Array.create<'a> nCols initValue)
         |> Seq.toArray
 
-    let getAdjacentNeighbours (point: Point2D) =
+    let getAdjacentNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
-        |> Seq.map (fun (x, y) -> Point2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
         |> Seq.toArray
 
-    let getDiagonalNeighbours (point: Point2D) =
+    let getDiagonalNeighbours (point: P2D) =
         [ (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> Point2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
         |> Seq.toArray
 
-    let getAllNeighbours (point: Point2D) =
+    let getAllNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1); (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> Point2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
         |> Seq.toArray
 
 
@@ -432,83 +440,35 @@ module Math =
 
     let inline lcm a b = (a * b) / (gcd a b)
 
-
-module Point2D =
-    let getAdjacentNeighbours (point: Point2D) =
+module P2D =
+    let getAdjacentNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
-        |> Seq.map (fun (x, y) -> Point2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
         |> Seq.toArray
 
-    let getDiagonalNeighbours (point: Point2D) =
+    let getDiagonalNeighbours (point: P2D) =
         [ (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> Point2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
         |> Seq.toArray
 
-    let getAllNeighbours (point: Point2D) =
+    let getAllNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1); (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> Point2D(point.x + x, point.y + y))
+        |> Seq.map (fun (x, y) -> P2D(point.x + x, point.y + y))
         |> Seq.toArray
-
-type Pair<'a, 'b> =
-    struct
-        val Item1: 'a
-        val Item2: 'b
-
-        new(item1, item2) = { Item1 = item1; Item2 = item2 }
-    end
-
-type Triple<'a, 'b, 'c> =
-    struct
-        val Item1: 'a
-        val Item2: 'b
-        val Item3: 'c
-
-        new(item1, item2, item3) =
-            { Item1 = item1
-              Item2 = item2
-              Item3 = item3 }
-    end
-
-type Quad<'a, 'b, 'c, 'd> =
-    struct
-        val Item1: 'a
-        val Item2: 'b
-        val Item3: 'c
-        val Item4: 'd
-
-        new(item1, item2, item3, item4) =
-            { Item1 = item1
-              Item2 = item2
-              Item3 = item3
-              Item4 = item4 }
-    end
-
-let inline spair a b = Pair(a, b)
-let inline striple a b c = Triple(a, b, c)
-let inline squad a b c d = Quad(a, b, c, d)
-
-let inline spair_fst (pair: Pair<_, _>) = pair.Item1
-let inline spair_snd (pair: Pair<_, _>) = pair.Item2
-
-let inline spair_ref_fst (pair: Pair<_, _> byref) = pair.Item1
-let inline spair_ref_snd (pair: Pair<_, _> byref) = pair.Item2
-
-let inline striple_fst (triple: Triple<_, _, _>) = triple.Item1
-let inline striple_snd (triple: Triple<_, _, _>) = triple.Item2
-let inline striple_trd (triple: Triple<_, _, _>) = triple.Item3
-
-let inline striple_ref_fst (triple: Triple<_, _, _> byref) = triple.Item1
-let inline striple_ref_snd (triple: Triple<_, _, _> byref) = triple.Item2
-let inline striple_ref_trd (triple: Triple<_, _, _> byref) = triple.Item3
-
-let inline squad_fst (quad: Quad<_, _, _, _>) = quad.Item1
-let inline squad_snd (quad: Quad<_, _, _, _>) = quad.Item2
-let inline squad_trd (quad: Quad<_, _, _, _>) = quad.Item3
-let inline squad_fth (quad: Quad<_, _, _, _>) = quad.Item4
-
-let inline squad_ref_fst (quad: Quad<_, _, _, _> byref) = quad.Item1
-let inline squad_ref_snd (quad: Quad<_, _, _, _> byref) = quad.Item2
-let inline squad_ref_trd (quad: Quad<_, _, _, _> byref) = quad.Item3
-let inline squad_ref_fth (quad: Quad<_, _, _, _> byref) = quad.Item4
 
 let aocIO = aocIO 2025
+
+type DIR =
+    | U
+    | D
+    | L
+    | R
+
+[<System.Runtime.CompilerServices.ExtensionAttribute>]
+type Extensions =
+    // Tuple<int, int>
+    [<System.Runtime.CompilerServices.ExtensionAttribute>]
+    static member ToP2D(t: System.Tuple<int, int>) = P2D(fst t, snd t)
+    // P2D
+    [<System.Runtime.CompilerServices.ExtensionAttribute>]
+    static member Rev(p: P2D) = P2D(p.y, p.x)
