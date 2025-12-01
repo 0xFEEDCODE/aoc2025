@@ -2,10 +2,34 @@
 
 open aoc2025.util
 
-type Rot =
-    | L
-    | R
+[<Literal>]
+let RotationSlots = 100
 
+let performOperation (op: int -> int -> int, dist) prevDial = op prevDial (dist % RotationSlots)
+
+let getNewClicks countRotations opAndDistance prevDial =
+    let rotationClicks = (snd opAndDistance) / RotationSlots
+
+    countRotations?(rotationClicks, 0)
+    + match (performOperation opAndDistance prevDial) with
+      | nd when countRotations && nd < 0 && prevDial <> 0 -> 1
+      | nd when countRotations && nd > RotationSlots && prevDial <> 0 -> 1
+      | 0
+      | RotationSlots -> 1
+      | _ -> 0
+
+let getNewDial opAndDistance prevDial =
+    match (performOperation opAndDistance prevDial) with
+    | nd when nd < 0 -> RotationSlots - abs nd
+    | nd when nd >= RotationSlots -> nd % RotationSlots
+    | nd -> nd
+
+let rotateLock countRotations (accClicks, prevDial) opAndDistance =
+    let newDial = getNewDial opAndDistance prevDial
+
+    let newClicks = getNewClicks countRotations opAndDistance prevDial
+
+    (accClicks + newClicks, newDial)
 
 let solve () =
     let io = aocIO
@@ -14,56 +38,17 @@ let solve () =
     let doc =
         inp
         |> Seq.map (fun x ->
-            let rot =
+            let rotOp =
                 match x[0] with
-                | 'L' -> L
-                | 'R' -> R
+                | 'L' -> (-)
+                | 'R' -> (+)
 
             let dist = x[1..] |> int
-            (rot, dist))
+            (rotOp, dist))
 
-    let mutable dial = 50
-    let mutable x = 0
+    let dial = 50
+    let ans1, _ = ((0, dial), doc) ||> Seq.fold (rotateLock false)
+    let ans2, _ = ((0, dial), doc) ||> Seq.fold (rotateLock true)
 
-    //let doc = doc |> Seq.map(fun (f,s) -> (f, s+100))
-
-    for (r, d) in doc do
-        let op =
-            match r with
-            | L -> (-)
-            | R -> (+)
-
-        let mutable nRot = (abs d < 100)?(0, d / 100)
-
-        if nRot > 0 then
-            &x += nRot
-
-        let d = d % 100
-
-        let res = (op dial d)
-
-        let res =
-            match res with
-            | _ when res < 0 ->
-                if dial <> 0 then
-                    &x += 1
-
-                100 - abs res
-            | _ when res >= 100 ->
-                if dial <> 0 then
-                    &x += 1
-
-                res % 100
-            | _ ->
-                if dial <> 0 && res = 0 then
-                    &x += 1
-
-                res
-
-        dial <- res
-
-
-        printfn $"%A{(dial, x, nRot)}"
-
-    printfn $"%A{x}"
-    ()
+    printfn $"%A{ans1}"
+    printfn $"%A{ans2}"

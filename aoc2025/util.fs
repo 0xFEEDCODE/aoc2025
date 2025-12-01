@@ -15,6 +15,8 @@ open System.Threading
 let smapi x = x |> Seq.mapi (fun i x -> (i, x))
 let swapTuple x = (snd x, fst x)
 
+let wtf () = failwith "wtf"
+
 let lw (a, b) = (lazy a, lazy b)
 let (?) is_true (a, b) = if is_true then a else b
 let ($) isTrue (a: Lazy<'a>, b: Lazy<'a>) = if isTrue then a.Force() else b.Force()
