@@ -9,6 +9,7 @@
     <ItemGroup>
         <Compile Include="util.fs"/>
         <Content Include="practice.txt"/>
+        <Content Include="practice_bf.txt"/>
         <Content Include="template.txt"/>
         <Content Include="junk.txt"/>
         <Content Include="day01.txt"/>
@@ -23,7 +24,6 @@
         <Content Include="day10.txt"/>
         <Content Include="day11.txt"/>
         <Content Include="day12.txt"/>
-        <Compile Include="practice"/>
         <Compile Include="day01.fs"/>
         <Compile Include="Program.fs"/>
     </ItemGroup>

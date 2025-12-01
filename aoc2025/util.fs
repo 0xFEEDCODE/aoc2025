@@ -174,8 +174,10 @@ type P2D =
     { x: int
       y: int }
 
-    member this.GetManhattanDistance(other: P2D) =
+    member this.GetManhattanDistance(other) =
         abs (this.x - other.x) + abs (this.y - other.y)
+
+    member this.AsTuple() = (this.x, this.y)
 
     static member (+)(a: P2D, b: P2D) = { x = a.x + b.x; y = a.y + b.y }
     static member (-)(a: P2D, b: P2D) = { x = a.x - b.x; y = a.y - b.y }
@@ -186,7 +188,7 @@ type P2D =
 type TupleExtensions =
     // Tuple<int, int>
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
-    static member AsP2D(t: System.Tuple<int, int>) = { x = fst t; y = snd t }
+    static member AsP2D(t: System.Tuple<int, int>) = { x = snd t; y = fst t }
 
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
     static member AsBoundary(t: System.Tuple<int, int, int, int>) =
@@ -452,6 +454,11 @@ module Grid =
         |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
         |> Seq.toArray
 
+    let isInBounds boundary point =
+        point.x >= boundary.minX
+        && point.x <= boundary.maxX
+        && point.y >= boundary.minY
+        && point.y <= boundary.maxY
 
 
 module Math =
@@ -498,8 +505,8 @@ type Extensions =
     // Grid
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
     static member Print(grid: 'a array array) =
-        for i in 0 .. grid.Length - 1 do
-            for j in 0 .. (grid |> Seq.head |> Seq.length) - 1 do
-                printf $"{grid[i][j]}"
+        for y in 0 .. ((grid |> Seq.head |> Seq.length) - 1) do
+            for x in 0 .. ((grid |> Seq.length) - 1) do
+                printf $"{grid[x][y]}"
 
             printfn ""
