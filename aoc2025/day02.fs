@@ -1,102 +1,66 @@
 ﻿module aoc2025.day02
 
-open System
 open aoc2025.util
 
-let isValid (n) =
-    let s = n.ToString()
-    let s = s.TrimStart '0'
-
-    let l = s |> Seq.length
+let isValid n =
+    let s = n.ToString().TrimStart '0'
+    let l = s.Length
 
     let even = (l % 2) = 0
 
-    if not even then
-        true
-    else
-        let x = (s[.. (l / 2) - 1], s[(l / 2) ..])
-        fst x <> snd x
+    not even
+    || (let f, s = (s[.. (l / 2) - 1], s[(l / 2) ..])
+        f <> s)
 
-let isValid2 (n) =
-    let s = n.ToString()
-    let s = s.TrimStart '0'
+let isValid2 n =
+    let s = n.ToString().TrimStart '0'
 
     let mutable i = 0
-    let mutable found = false
+    let mutable isInvalid = false
 
-    while i < (s.Length / 2) && not found do
+    while i < (s.Length / 2) && not isInvalid do
         let s1 = s[..i]
-        let l = s1.Length
+        let sl = s1.Length
+
+        let mutable isDiff = s.Length % sl <> 0
 
         let mutable j = i + 1
-        let mutable stop = false
 
-        let mutable t = ""
+        while not isDiff && (j + sl) <= s.Length do
+            let s2 = s[j .. (j + sl - 1)]
 
-        if (s.Length % l) = 0 then
-            while (j + l) <= s.Length && not stop do
-                let s2 = s[(j) .. (j + l - 1)]
-                t <- s2
+            if (s2.Length <> s1.Length) then
+                failwith "wtf"
 
-                if (s2.Length <> s1.Length) then
-                    failwith ""
+            isDiff <- s1 <> s2
 
-                (*
-                printf $"%A{(s1, s2)};"
-                *)
-                let isMatch = s1 = s2
-                stop <- not isMatch
+            &j += sl
 
-                if stop then
-                    ()
-
-                &j += l
-        else
-            stop <- true
-
-        found <- not stop
-
-        if found then
-            ()
-
+        isInvalid <- not isDiff
         &i += 1
 
-    not found
+    not isInvalid
 
 
+let alg ranges validationFn =
+    let mutable allInvalid = []
 
+    for r in ranges do
+        let rs, re = ((fst r) |> double, (snd r) |> double)
 
+        let invalid =
+            [ for n in rs..re do
+                  if not (validationFn n) then
+                      yield n ]
 
-let alg rs =
-    let mutable s = []
+        allInvalid <- allInvalid @ [ invalid ]
 
-    for y in rs do
-        let r = (double (fst y), double (snd y))
-
-        let invalids =
-            [ for x in (fst r) .. (snd r) do
-                  if not (isValid2 x) then
-                      yield (x) ]
-
-        s <- s @ [ invalids ]
-
-    s
+    allInvalid
 
 
 let solve () =
     let io = aocIO
-    let sample = false
-    let inp = if sample then io.sample () else io.getInput ()
-
-    (*
-    let inv = [ 12341234; 77777777; 1212121212; 55; 123123; 1010 ] |> List.map (string)
-    let v = [ 101; 0101; 0001010 ] |> Seq.map (string)
-
-    for s in v do
-        printfn $"%A{isValid2 s}"
-        *)
-    
-    printfn $"%A{isValid2 2121212118}"
+    let inp = io.getInput ()
 
     let inp =
         (inp |> Seq.head).Split ','
@@ -105,20 +69,9 @@ let solve () =
             (spl[0], spl[1]))
         |> Seq.toList
 
-    printfn $"%A{inp}"
+    let ans1 = alg inp isValid
+    printfn $"%d{ans1 |> Seq.collect id |> Seq.sumBy double |> uint64}"
 
-    let ans1 = alg inp
-    printfn $"%d{ans1 |> Seq.collect id |> Seq.sumBy (fun x -> double x) |> uint64}"
-
-
-
-
-    (*
-    let inv = [ 555;55; 123123; 1010 ] |> Seq.map(string)
-    let v = [ 101; 0101; 0001010 ] |> Seq.map(string)
-    
-    for s in inv do
-        printfn $"%A{isValid s}"
-        *)
-
+    let ans2 = alg inp isValid2
+    printfn $"%d{ans2 |> Seq.collect id |> Seq.sumBy double |> uint64}"
     0
