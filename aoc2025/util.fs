@@ -313,6 +313,10 @@ type aocIO(year) =
         let moduleName = getCallerModuleName ()
         File.ReadLines(getPathToInputFile moduleName)
 
+    member this.sample() =
+        let moduleName = getCallerModuleName ()
+        File.ReadLines(getPathToInputFile (moduleName + "sample"))
+
     member this.getInput(?overrideIfExists: bool) =
         let overrideIfExists = defaultArg overrideIfExists false
 
