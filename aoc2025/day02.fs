@@ -41,22 +41,9 @@ let isValid2 n =
 
     not isInvalid
 
-
 let alg ranges validationFn =
-    let mutable allInvalid = []
-
-    for r in ranges do
-        let rs, re = ((fst r) |> double, (snd r) |> double)
-
-        let invalid =
-            [ for n in rs..re do
-                  if not (validationFn n) then
-                      yield n ]
-
-        allInvalid <- allInvalid @ [ invalid ]
-
-    allInvalid
-
+    [ for rs, re in ranges do yield [ for n in rs..re do if not (validationFn n) then yield n ]]
+    |> List.collect id
 
 let solve () =
     let io = aocIO
@@ -65,13 +52,12 @@ let solve () =
     let inp =
         (inp |> Seq.head).Split ','
         |> Seq.map (fun x ->
-            let spl = (x.Split '-')
+            let spl = (x.Split '-') |> Seq.map double |> Seq.toList
             (spl[0], spl[1]))
-        |> Seq.toList
 
     let ans1 = alg inp isValid
-    printfn $"%d{ans1 |> Seq.collect id |> Seq.sumBy double |> uint64}"
+    printfn $"%d{ans1 |> Seq.sumBy double |> uint64}"
 
     let ans2 = alg inp isValid2
-    printfn $"%d{ans2 |> Seq.collect id |> Seq.sumBy double |> uint64}"
+    printfn $"%d{ans2 |> Seq.sumBy double |> uint64}"
     0
