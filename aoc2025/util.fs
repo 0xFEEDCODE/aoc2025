@@ -190,7 +190,7 @@ type P2D =
 type TupleExtensions =
     // Tuple<int, int>
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
-    static member AsP2D(t: System.Tuple<int, int>) = { x = snd t; y = fst t }
+    static member AsP2D(t: System.Tuple<int, int>) = { x = fst t; y = snd t }
 
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
     static member AsBoundary(t: System.Tuple<int, int, int, int>) =
@@ -313,7 +313,7 @@ type aocIO(year) =
         let moduleName = getCallerModuleName ()
         File.ReadLines(getPathToInputFile moduleName)
 
-    member this.sample() =
+    member this.readSampleInput() =
         let moduleName = getCallerModuleName ()
         File.ReadLines(getPathToInputFile (moduleName + "sample"))
 

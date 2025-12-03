@@ -1,8 +1,8 @@
-﻿module aoc2025.dayX
-
+﻿
 open aoc2025.util
 
 let solve () =
     let io = aocIO
     let inp = io.getInput ()
     0
+
