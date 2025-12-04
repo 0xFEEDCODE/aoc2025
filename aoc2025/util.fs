@@ -513,6 +513,6 @@ type Extensions =
     static member Print(grid: 'a array array) =
         for y in 0 .. ((grid |> Seq.head |> Seq.length) - 1) do
             for x in 0 .. ((grid |> Seq.length) - 1) do
-                printf $"{grid[x][y]}"
+                printf $"{grid[y][x]}"
 
             printfn ""

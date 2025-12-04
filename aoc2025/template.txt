@@ -1,8 +1,9 @@
-﻿
-open aoc2025.util
+﻿open aoc2025.util
+
+
+let useSampleInput = 0
 
 let solve () =
     let io = aocIO
-    let inp = io.getInput ()
+    let inp = if useSampleInput=1 then io.readSampleInput () else io.getInput ()
     0
-
