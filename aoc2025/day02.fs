@@ -42,7 +42,11 @@ let isValid2 n =
     not isInvalid
 
 let alg ranges validationFn =
-    [ for rs, re in ranges do yield [ for n in rs..re do if not (validationFn n) then yield n ]]
+    [ for rs, re in ranges do
+          yield
+              [ for n in rs..re do
+                    if not (validationFn n) then
+                        yield n ] ]
     |> List.collect id
 
 let solve () =
