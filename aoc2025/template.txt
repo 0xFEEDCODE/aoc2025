@@ -1,6 +1,5 @@
 ﻿open aoc2025.util
 
-
 let useSampleInput = 0
 
 let solve () =
