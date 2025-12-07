@@ -24,7 +24,7 @@ let solve () =
 
     for y in 0 .. ((gr |> Seq.head |> Seq.length) - 1) do
         for x in 0 .. ((gr |> Seq.length) - 1) do
-            let p = (x, y).AsP2D()
+            let p = (x, y).AsP2DXY()
 
             if gr[y][x] = '@' then
                 let neigh = p |> P2D.getAllNeighbours
@@ -52,7 +52,7 @@ let solve () =
 
         for y in 0 .. ((gr |> Seq.head |> Seq.length) - 1) do
             for x in 0 .. ((gr |> Seq.length) - 1) do
-                let p = (x, y).AsP2D()
+                let p = (x, y).AsP2DXY()
 
                 if gr[y][x] = '@' then
                     let neigh = p |> P2D.getAllNeighbours

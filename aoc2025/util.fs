@@ -190,7 +190,10 @@ type P2D =
 type TupleExtensions =
     // Tuple<int, int>
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
-    static member AsP2D(t: System.Tuple<int, int>) = { x = fst t; y = snd t }
+    static member AsP2DXY(t: System.Tuple<int, int>) = { x = fst t; y = snd t }
+
+    [<System.Runtime.CompilerServices.ExtensionAttribute>]
+    static member AsP2DYX(t: System.Tuple<int, int>) = { x = snd t; y = fst t }
 
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
     static member AsBoundary(t: System.Tuple<int, int, int, int>) =
@@ -282,7 +285,7 @@ type Line =
 
 let smapi2 x =
     (smapi x)
-    |> Seq.map (fun (fst, snd) -> snd |> Seq.mapi (fun i x -> ((fst, i).AsP2D(), x)))
+    |> Seq.map (fun (fst, snd) -> snd |> Seq.mapi (fun i x -> ((fst, i).AsP2DXY(), x)))
     |> Seq.collect id
 
 
@@ -447,17 +450,17 @@ module Grid =
 
     let getAdjacentNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
-        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2DXY())
         |> Seq.toArray
 
     let getDiagonalNeighbours (point: P2D) =
         [ (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2DXY())
         |> Seq.toArray
 
     let getAllNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1); (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2DXY())
         |> Seq.toArray
 
     let isInBounds boundary point =
@@ -482,17 +485,17 @@ module Math =
 module P2D =
     let getAdjacentNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1) ]
-        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2DXY())
         |> Seq.toArray
 
     let getDiagonalNeighbours (point: P2D) =
         [ (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2DXY())
         |> Seq.toArray
 
     let getAllNeighbours (point: P2D) =
         [ (-1, 0); (1, 0); (0, -1); (0, 1); (1, 1); (-1, 1); (1, -1); (-1, -1) ]
-        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2D())
+        |> Seq.map (fun (x, y) -> (point.x + x, point.y + y).AsP2DXY())
         |> Seq.toArray
 
 let aocIO = aocIO 2025
@@ -507,12 +510,12 @@ type DIR =
 type Extensions =
     // P2D
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
-    static member Rev(p: P2D) = (p.y, p.x).AsP2D()
+    static member Rev(p: P2D) = (p.y, p.x).AsP2DXY()
     // Grid
     [<System.Runtime.CompilerServices.ExtensionAttribute>]
-    static member Print(grid: 'a array array) =
-        for y in 0 .. ((grid |> Seq.head |> Seq.length) - 1) do
-            for x in 0 .. ((grid |> Seq.length) - 1) do
-                printf $"{grid[y][x]}"
+    static member Print(gr: 'a array array) =
+        for y in 0 .. ((gr |> Seq.length) - 1) do
+            for x in 0 .. ((gr |> Seq.head |> Seq.length) - 1) do
+                printf $"{gr[y][x]}"
 
             printfn ""

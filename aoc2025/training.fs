@@ -62,9 +62,9 @@ let bff sp goal obst bounds =
 
 let solve () =
     let gr = Grid.createGrid<char> 12 12
-    let sp = (0, 1).AsP2D()
-    let ep = (11, 11).AsP2D()
-    let obst = [ (1, 1); (0, 2); (2, 2); (3, 3); (4, 4) ] |> Seq.map (_.AsP2D())
+    let sp = (0, 1).AsP2DXY()
+    let ep = (11, 11).AsP2DXY()
+    let obst = [ (1, 1); (0, 2); (2, 2); (3, 3); (4, 4) ] |> Seq.map (_.AsP2DXY())
 
     let bounds = gr |> Grid.getBoundary
 
@@ -73,7 +73,7 @@ let solve () =
 
     for y in 0 .. ((gr |> Seq.head |> Seq.length) - 1) do
         for x in 0 .. ((gr |> Seq.length) - 1) do
-            let x = (x, y).AsP2D()
+            let x = (x, y).AsP2DXY()
 
             if x = sp then printf $"S"
             elif x = ep then printf $"E"
