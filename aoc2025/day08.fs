@@ -42,7 +42,7 @@ let solve () =
                 proximity[dist] <- (j1, j2)
 
     let sorted =
-        proximity |> Seq.map _.Key |> Seq.sort |> Seq.take (nConnectionsToMake*10)
+        proximity |> Seq.map _.Key |> Seq.sort |> Seq.take (nConnectionsToMake * 10)
 
     let mutable orderedByClosest = []
 
@@ -55,8 +55,12 @@ let solve () =
         nl.Insert(0, j)
         circuits.Insert(0, nl)
 
+    let mutable ans1 = double 0
+    let mutable ans2 = double 0
+
     let mutable i = 0
     let mutable nConnections = 0
+
     while (circuits.Count <> 1) do
         let j = orderedByClosest[i]
         let closest = orderedByClosest[(i + 1)]
@@ -80,21 +84,22 @@ let solve () =
             nl.AddRange(rc2)
 
             circuits.Insert(0, nl)
-            
-        if circuits.Count = 1 then
-            printfn $"%A{(double c1.x * double c2.x)}"
-            ()
-        
 
-        &nConnections +=1 
+        if nConnections = nConnectionsToMake then
+            ans1 <-
+                circuits
+                |> Seq.map _.Count
+                |> Seq.map double
+                |> Seq.sortDescending
+                |> Seq.take 3
+                |> Seq.reduce (fun x y -> double x * double y)
+
+        if circuits.Count = 1 then
+            ans2 <- (double c1.x) * (double c2.x)
+
+        &nConnections += 1
         &i += 2
 
-    let ans1 =
-        circuits
-        |> Seq.map _.Count
-        |> Seq.sortDescending
-        |> Seq.take 3
-        |> Seq.reduce (fun x y -> x * y)
 
     printfn $"%A{ans1}"
-    0
+    printfn $"%A{ans2}"
