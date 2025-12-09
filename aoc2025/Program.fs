@@ -4,7 +4,7 @@ open aoc2025
 let sw = Stopwatch()
 
 sw.Start()
-day07.solve ()
+day09.solve ()
 
 sw.Stop()
 printfn $"Time taken - %A{sw.Elapsed}"
