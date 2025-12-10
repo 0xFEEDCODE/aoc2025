@@ -217,6 +217,10 @@ type P3D =
         override this.ToString() = $"[{this.x};{this.y};{this.z}]"
     end
 
+type Orientation =
+    | Horizontal
+    | Vertical
+
 type Line =
     struct
         val s: P2D
@@ -232,6 +236,26 @@ type Line =
             let end2 = (max endA endB)
 
             start2 <= end1 && start1 <= start2 && end1 <= end2
+
+
+        member this.GetOrientation() =
+            if (this.s.x <> this.e.x) then Horizontal
+            else if (this.s.y <> this.e.y) then Vertical
+            else failwith "wtf"
+
+        member private this.IntersectsAtAxisStrict start1 end1 start2 end2 =
+            start2 <= end1 && start1 <= start2 && end1 <= end2
+
+        member this.IntersectsStrict(other: Line) =
+            let ax1, ay1, ax2, ay2 = (this.s.x, this.s.y, this.e.x, this.e.y)
+            let bx1, by1, bx2, by2 = (other.s.x, other.s.y, other.e.x, other.e.y)
+
+            if (ax1 = ax2 && bx1 = bx2 && ax1 = bx1) then
+                this.IntersectsAtAxisStrict ay1 ay2 by1 by2
+            elif (ay1 = ay2 && by1 = by2 && ay1 = by1) then
+                this.IntersectsAtAxisStrict ax1 ax2 bx1 bx2
+            else
+                false
 
         member this.Intersects(other: Line) =
             let ax1, ay1, ax2, ay2 = (this.s.x, this.s.y, this.e.x, this.e.y)
