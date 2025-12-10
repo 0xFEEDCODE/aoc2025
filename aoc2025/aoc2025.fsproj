@@ -45,6 +45,7 @@
         <Content Include="day09take1.txt"/>
         <Compile Include="day09.fs"/>
         <Compile Include="day10.fs"/>
+        <Content Include="day10take1.txt"/>
         <Compile Include="Program.fs"/>
     </ItemGroup>
 

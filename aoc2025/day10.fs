@@ -2,160 +2,125 @@
 
 open System.Collections.Generic
 open System
-open System.Linq
 open aoc2025.util
 
-let useSampleInput = 1
+let useSampleInput = 0
 
-let alg (goalLC: int list) (bc: int list list) =
+let alg2 (startJC: int list) (bc: int list list) =
+    let bc = bc |> Seq.sortBy (fun b -> b |> Seq.length) |> Seq.toList
+    let memo = Dictionary<(int list * int list) * int, int list>()
 
     let mutable bestFound = Int32.MaxValue
 
-    let pressButton (lc: int list) b =
-        let newLC = List(lc)
+    let nTimesCanPress (jc: int list) (b: int list) =
+        b |> Seq.map (fun jpos -> jc[jpos]) |> Seq.min
+        
+    let pressButtonNTimes (jc: int list) (b: int list) incr =
+        if (memo.ContainsKey(((jc, b), incr))) then
+            memo[((jc, b), incr)]
+        else
+            let mutable newJC = List(jc)
 
-        for lightPos in b do
-            newLC[lightPos] <- if lc[lightPos] = 0 then 1 else 0
+            for jpos in b do
+                newJC[jpos] <- jc[jpos] - incr
 
-        newLC |> Seq.toList
+            let res = newJC |> Seq.toList
+            memo[((jc, b), incr)] <- res
+            res
+
+    let canReach (jc: int list) = jc |> List.forall (fun x -> x >= 0)
+    let dist (jc: int list) = jc |> List.sum
 
     let q = PriorityQueue()
 
-    let nl = List(goalLC)
-
-    for i in 0 .. (nl |> Seq.length) - 1 do
-        nl[i] <- 0
-
-    let nl = nl |> Seq.toList
-
-
     for b in bc do
-        let nlc, np = (pressButton nl b), 1
-        q.Enqueue((nlc, np), 0)
+        let njc, np = (pressButtonNTimes startJC b 1), 1
+        q.Enqueue((njc, np), 0)
+
+    let cons = Dictionary<int list, int>()
 
     while (q.Count > 0) do
-        let lc, nPresses = q.Dequeue()
+        let jc, nPresses = q.Dequeue()
 
-        if lc = goalLC then
-            if nPresses < bestFound then
-                bestFound <- nPresses
-        else if nPresses < bestFound then
-            for b in bc do
-                let nlc, np = (pressButton lc b), (nPresses + 1)
-                q.Enqueue((nlc, np), np)
+        if not (cons.ContainsKey(jc)) || cons[jc] > nPresses then
+            cons[jc] <- nPresses
 
-    bestFound
+            let reached = jc |> Seq.forall (fun x -> x = 0)
 
+            if reached then
+                if nPresses < bestFound then
+                    bestFound <- nPresses
+                    printfn $"new best found - %A{bestFound}"
+            else if nPresses < bestFound && canReach jc then
+                for b in bc do
+                    let nTimesCanPress = nTimesCanPress jc b
 
+                    if nTimesCanPress > 0 then
+                        for n in 1..nTimesCanPress do
+                            let njc, np = (pressButtonNTimes jc b n), (nPresses + n)
+                            q.Enqueue((njc, np), dist njc)
 
-let alg2 (goalJC: int list) (bc: int list list) =
-    let gl = goalJC.Length
+                (*let sortedPossibilities =
+                    bc
+                    |> Seq.map (fun b -> (b, nTimesCanPress jc b))
+                    |> Seq.sortByDescending snd
 
-    let m1 = Dictionary<(List<int>), bool>()
-    let m2 = Dictionary<(List<int>), bool>()
-    let m3 = Dictionary<(List<int>), int>()
+                let lowestPrio =
+                    [ for (b, nCanPress) in sortedPossibilities do
+                          let njc, np = (pressButtonNTimes jc b 1), (nPresses + 1)
 
-    let ncd = Dictionary<int, int>()
-    let rd = Dictionary<int, int>()
+                          let prio = (dist njc)
+                          yield (prio, (njc, np))
 
-    let gs = goalJC |> Seq.sum
+                          let njc, np = (pressButtonNTimes njc b nCanPress), (nPresses + 1 + nCanPress)
+                          let prio = (dist njc)
+                          yield (prio, (njc, np)) ]
 
-    let popRD (l: List<int>) =
-        for i in 0 .. ((goalJC |> Seq.length) - 1) do
-            rd[i] <- 0
+                for (prio, (njc, np)) in lowestPrio do
+                    q.Enqueue((njc, np), prio)*)
+    (*
+                let takeN = (min 10 (lowestPrio |> Seq.length))
 
-        for i in 0 .. (l.Count - 1) do
-            let nPresses = l[i]
-
-            for jpos in bc[i] do
-                rd[jpos] <- rd[jpos] + nPresses
-
-    let isGoal (l: List<int>) =
-        if m1.ContainsKey l then
-            m1[l]
-        else
-            popRD l
-            let mutable i = 0
-            let mutable flag = true
-
-            while i < gl && flag do
-                flag <- goalJC[i] = rd[i]
-                &i += 1
-
-            m1[l] <- flag
-            flag
-
-    let canReachGoal () =
-        let mutable flag = true
-        let mutable i = 0
-
-        while i < gl && flag do
-            flag <- rd[i] < goalJC[i]
-            &i += 1
-
-        flag
-
-    let getDist () =
-        let mutable dist = 0
-        let mutable i = 0
-
-        while i < gl do
-            dist <- dist + goalJC[i] - rd[i]
-            &i += 1
-
-        dist
-
-    let mutable bestFound = UInt64.MaxValue
-
-    let q = PriorityQueue<List<int>, int>()
-
-    let temp =
-        List(
-            [ for _ in 0 .. (bc |> Seq.length) - 1 do
-                  yield 0 ]
-        )
-
-    q.Enqueue(temp, 0)
-    let mutable cons = Dictionary<List<int>, unit>()
+                for (prio, (njc, np)) in lowestPrio |> Seq.take (takeN) do
+                    q.Enqueue((njc, np), prio)
+                    *)
 
     (*
-    printfn $"%A{(isGoal (List([1;3;0;3;1;1])))}"
-    printfn $"%A{(isGoal (List([1;3;0;3;1;2])))}"
-    printfn $"%A{(isGoal (List([1;3;0;3;1;3])))}"
-    *)
+                for (b, possible) in sortedPossibilities do
+                    let njc, np = (pressButton jc b), (nPresses + 1)
 
-    while (q.Count > 0) do
-        let c = q.Dequeue()
-        let nPresses = c.Sum() |> uint64
+                    if canReach njc then
+                        for b2, nCanPress in possible do
+                            let njc, np = (pressButtonNTimes njc b2 nCanPress), (nPresses + 1 + nCanPress)
+                            let prio = (dist njc)
+                            q.Enqueue((njc, np), prio)
 
-        let consider = not (cons.ContainsKey c) && nPresses < bestFound
+                        let prio = (dist njc)
+                        //printfn $"%A{(njc, prio)}"
+                        q.Enqueue((njc, np), prio)
+                        *)
 
-        cons[c] <- ()
+    (*
+            if possibilities |> Seq.isEmpty |> not then
+                let bc = possibilities |> Seq.head
+                let njc, np = (pressButton jc bc), (nPresses + 1)
 
-        if isGoal c then
-            if nPresses < bestFound then
-                bestFound <- nPresses
-                printfn $"%A{bestFound}"
-        else if consider then
+                if canReach njc then
+                    let prio = dist njc
+                    q.Enqueue((njc, np), prio + nPresses)
+                    *)
 
-            for i in 0 .. (c.Count) - 1 do
+    (*
+            for b in possibilities do
+                for i in (biggestElem) .. (-1) .. 1 do
+                    let njc, np = (pressButton2 jc b i), (nPresses + i)
 
-                let mutable flag = true
+                    if canReach njc then
+                        let prio = dist njc
+                        q.Enqueue((njc, np), prio + nPresses)
+                        *)
 
-                let mutable nc = c.ToList()
-                let mutable incr = 100
-
-                while flag && incr > 0 do
-                    &incr -= 1
-                    nc[i] <- c[i] + incr
-                    popRD nc
-
-                    let prio = getDist ()
-
-                    if prio > 0 && canReachGoal () then
-                        q.Enqueue(nc, prio)
-
-    if bestFound = UInt64.MaxValue then
+    if bestFound = Int32.MaxValue then
         failwith "wtf"
 
     bestFound
