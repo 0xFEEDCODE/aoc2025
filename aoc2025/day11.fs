@@ -123,17 +123,11 @@ let fp (connections: Dictionary<string, string list>) start goal =
     paths.Distinct()
 
 let findPaths2 (connections: Dictionary<string, string list>) =
-
-    let start = "svr"
-    let goal = "out"
-
     if leadsTo |> Seq.isEmpty then
         for x in connections.Keys do
             leadsTo[x] <- HashSet()
 
         leadsTo["out"] <- HashSet()
-
-    let mutable paths = []
 
     let pop () =
         let explore = Queue()
@@ -157,27 +151,9 @@ let findPaths2 (connections: Dictionary<string, string list>) =
                     explored.Add(kv.Key) |> ignore
                     explore.Enqueue(kv.Key)
 
-    (*
-    for kv in leadsTo do
-        for v in kv.Value do
-            if not (leadsTo[v].Contains(kv.Key)) then
-                leadsTo[v].Add(kv.Key) |> ignore
-
-    let mutable n = connections.Keys.Count
-
-    for p1 in connections.Keys do
-        for p2 in connections.Keys do
-            if p1 <> p2 then
-                (findPaths connections p1 p2) |> ignore
-
-        n <- n - 1
-        *)
 
     pop ()
     pop ()
-    pop ()
-    pop ()
-
 
     for p1 in connections.Keys do
         for p2 in connections.Keys do
@@ -190,43 +166,17 @@ let findPaths2 (connections: Dictionary<string, string list>) =
     printfn $"%A{(f |> Seq.length)}"
     printfn $"Processed"
 
-    let x = fp connections "svr" "fft"
-    printfn $"%A{x.Count()}"
-    let y = fp connections "fft" "dac"
-    printfn $"%A{y.Count()}"
-    let z = fp connections "dac" "out"
-    printfn $"%A{z.Count()}"
-    
-    let mutable n = (double (x.Count())) * (double (y.Count())) * (double (z.Count())) |> uint64
-    (*
-    let mutable paths = []
-    for a in z do
-        for b in y do
-            for c in x do
-                n <- n + 1
-                //paths <- paths @ [p]
-                *)
-                
-    printfn $"Res %d{n}"
-    let paths = paths |> List.distinct
-    printfn $"nPaths - %A{paths |> Seq.length }"
-    
-    let pathsSVR_FFT = fp connections "svr" "fft"
-    printfn $"%A{(pathsSVR_FFT.Count())}"
+    let svr_fft = fp connections "svr" "fft"
+    let fft_dac = fp connections "fft" "dac"
+    let dac_out = fp connections "dac" "out"
 
-    let containsDac =
-        pathsSVR_FFT |> Seq.where (fun x -> x.Contains "dac") |> Seq.length
+    let res =
+        (double (svr_fft.Count()))
+        * (double (fft_dac.Count()))
+        * (double (dac_out.Count()))
+        |> uint64
 
-    printfn $"%A{containsDac}"
-
-    let x = fp connections "fft" "dac"
-    printfn $"%A{(x.Count())}"
-
-    let y = fp connections "dac" "out"
-    printfn $"%A{(y.Count())}"
-
-
-    paths |> Seq.length
+    res
 
 let solve () =
     let io = aocIO

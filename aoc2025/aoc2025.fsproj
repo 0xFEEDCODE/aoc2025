@@ -24,7 +24,8 @@
         <Content Include="day08sample.txt"/>
         <Content Include="day09sample.txt"/>
         <Content Include="day10sample.txt"/>
-        <Content Include="day11sample.txt" />
+        <Content Include="day11sample.txt"/>
+        <Content Include="day12sample.txt"/>
         <Content Include="day04.txt"/>
         <Content Include="day05.txt"/>
         <Content Include="day06.txt"/>
@@ -47,7 +48,8 @@
         <Compile Include="day09.fs"/>
         <Compile Include="day10.fs"/>
         <Content Include="day10take1.txt"/>
-        <Compile Include="day11.fs" />
+        <Compile Include="day11.fs"/>
+        <Compile Include="day12.fs"/>
         <Compile Include="Program.fs"/>
     </ItemGroup>
 
