@@ -47,6 +47,10 @@
         <Content Include="day09take1.txt"/>
         <Compile Include="day09.fs"/>
         <Compile Include="day10.fs"/>
+        <Content Include="day10take6.txt"/>
+        <Content Include="day10take5.txt"/>
+        <Content Include="day10take4.txt"/>
+        <Content Include="day10take3.txt"/>
         <Content Include="day10take2.txt"/>
         <Content Include="day10take1.txt"/>
         <Compile Include="day11.fs"/>
